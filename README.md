@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="evals/results/reply-2026-10-29/RESULTS.md"><img src="https://img.shields.io/badge/measured-Claude_Sonnet_5.5-blueviolet?style=flat" alt="Claude Sonnet 5.5로 측정"></a>
-  <a href="skills/simple-korean/SKILL.md"><img src="https://img.shields.io/badge/version-0.1.0-blue?style=flat" alt="version 0.1.0"></a>
+  <a href="skills/simple-korean/SKILL.md"><img src="https://img.shields.io/badge/version-0.2.0-blue?style=flat" alt="version 0.2.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat" alt="MIT"></a>
 </p>
 
@@ -70,7 +70,7 @@ output style로 쓰려면 [`output-styles/simple-korean.md`](output-styles/simpl
 
 ## 측정
 
-채팅 질문 8개를 두 번씩 물어 조건마다 답변 16개를 받았습니다. 질문은 원본 SimpleEnglish의 8개를 한국어로 옮긴 것이고, 각 질문에 영어 기술 용어가 하나씩 들어 있습니다. 모델은 `claude-sonnet-5-5`, effort low, 설정 파일은 읽지 않았습니다. 숫자는 16개 답변의 합계이고, 어절과 문장만 답변당 평균입니다. [원문과 표](evals/results/reply-2026-10-29/RESULTS.md)
+채팅 질문 8개를 두 번씩 물어 조건마다 답변 16개를 받았습니다. 질문은 원본 SimpleEnglish의 8개를 한국어로 옮긴 것이고, 각 질문에 영어 기술 용어가 하나씩 들어 있습니다. 이 측정은 0.1.0 기준이고, 0.2.0에서 추가한 줄바꿈 규칙은 아직 측정하지 않았습니다. 모델은 `claude-sonnet-5-5`, effort low, 설정 파일은 읽지 않았습니다. 숫자는 16개 답변의 합계이고, 어절과 문장만 답변당 평균입니다. [원문과 표](evals/results/reply-2026-10-29/RESULTS.md)
 
 | 조건 | 답변 수 | 평균 어절 | 평균 문장 | em-dash | bold | header | bullet | table 줄 | 여닫는 말 | 번역투 | 꾸밈말 | 얼버무림 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -112,6 +112,7 @@ simple-korean은 bullet을 51개 남겼습니다. 대등한 항목이 셋 이상
 | 첫 문장이 답 | 질문 되풀이와 예열 문장 |
 | 여닫는 말 금지 | "좋은 질문입니다", "도움이 되셨길 바랍니다" |
 | 서식은 비교하거나 셀 때만 | 한 줄 답을 둘러싼 header, bullet, bold |
+| 한 문장마다 줄바꿈, 문단 사이 빈 줄 | 화면 끝까지 이어지는 한 줄짜리 문단 |
 
 ## 원본과 다른 점
 

@@ -10,7 +10,7 @@
       "name": "simple-korean",
       "source": "./",
       "description": "한 번 읽고 이해하는 한국어로 쓰는 규칙. 문장당 새 정보 하나, 능동형, 번역투 금지, em-dash 금지, 서식은 비교하거나 셀 때만.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "sunnyfterrain"
       },
