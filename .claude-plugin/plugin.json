@@ -1,0 +1,31 @@
+{
+  "name": "simple-korean",
+  "description": "한 번 읽고 이해하는 한국어로 쓰는 규칙. 문장당 새 정보 하나, 능동형, 번역투 금지, em-dash 금지, 서식은 비교하거나 셀 때만. AminBlg/SimpleEnglish의 한국어 판.",
+  "version": "0.1.0",
+  "author": {
+    "name": "sunnyfterrain"
+  },
+  "homepage": "https://github.com/sunnyfterrain/SimpleKorean",
+  "repository": "https://github.com/sunnyfterrain/SimpleKorean",
+  "license": "MIT",
+  "keywords": [
+    "korean",
+    "technical-writing",
+    "documentation",
+    "plain-language"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/hooks/simple-korean-activate.js\"",
+            "timeout": 5,
+            "statusMessage": "Simple Korean 규칙을 불러옵니다..."
+          }
+        ]
+      }
+    ]
+  }
+}

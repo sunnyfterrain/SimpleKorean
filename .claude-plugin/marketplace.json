@@ -1,0 +1,23 @@
+{
+  "name": "simple-korean",
+  "owner": {
+    "name": "sunnyfterrain",
+    "url": "https://github.com/sunnyfterrain"
+  },
+  "description": "한 번 읽고 이해하는 한국어로 쓰는 규칙. AminBlg/SimpleEnglish의 한국어 판.",
+  "plugins": [
+    {
+      "name": "simple-korean",
+      "source": "./",
+      "description": "한 번 읽고 이해하는 한국어로 쓰는 규칙. 문장당 새 정보 하나, 능동형, 번역투 금지, em-dash 금지, 서식은 비교하거나 셀 때만.",
+      "version": "0.1.0",
+      "author": {
+        "name": "sunnyfterrain"
+      },
+      "homepage": "https://github.com/sunnyfterrain/SimpleKorean",
+      "repository": "https://github.com/sunnyfterrain/SimpleKorean",
+      "license": "MIT",
+      "keywords": ["korean", "technical-writing", "documentation", "plain-language"]
+    }
+  ]
+}

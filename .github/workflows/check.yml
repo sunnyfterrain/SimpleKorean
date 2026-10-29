@@ -1,0 +1,21 @@
+name: check
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: hook 테스트
+        run: cd src/hooks && node --test
+      - name: 검사기 self-test
+        run: python3 -I evals/ko_check.py --self-test
+      - name: README 숫자 재계산
+        run: python3 -I evals/check_numbers.py evals/results/reply-2026-10-29 --check README.md
