@@ -55,13 +55,14 @@ hook은 settings에서 output style `simple-korean`을 찾으면 규칙을 넣�
 같은 질문에 대한 실제 Claude 출력이고, 글자는 고치지 않았습니다.\
 표 칸 안에서 줄을 바꾸려고 문단 안의 줄바꿈만 `<br>`로 바꿨습니다.
 
-질문: "배포 스크립트가 /v2/orders에 POST를 보내다 timeout이 나면 재시도합니다. 안전한가요? endpoint가 idempotent하다는데 정확히 무슨 뜻인지 모르겠습니다. 짧게 설명해 주세요."
+질문: "React에서 useEffect가 두 번 실행돼요. 버그인가요?"
 
 | | 적용 전 | 적용 후 |
 |---|---:|---:|
-| 어절 | 151 | 112 |
-| bold | 7 | 0 |
-| bullet | 7 | 0 |
+| 어절 | 193 | 79 |
+| bold | 6 | 0 |
+| header | 5 | 0 |
+| bullet | 5 | 0 |
 
 <table>
 <tr>
@@ -71,49 +72,108 @@ hook은 settings에서 output style `simple-korean`을 찾으면 규칙을 넣�
 <tr>
 <td valign="top">
 
-**Idempotent**는 "같은 요청을 여러 번 보내도 결과가 한 번 보낸 것과 같다"는 뜻입니다. 예를 들어 같은 주문 요청이 두 번 도착해도 주문이 2건 생기지 않고 1건만 존재해야 합니다.
+버그가 아닙니다. 대부분 **React 18+ Strict Mode**의 의도된 동작입니다.
 
-**재시도가 안전한지는 어떻게 idempotent한지에 달려 있습니다.**
+## 원인
 
-- POST는 HTTP 표준상 기본적으로 idempotent하지 않습니다. 그래서 "idempotent하다"는 말은 서버가 별도로 보장해야 성립합니다. 보통은 아래 중 하나입니다.
-  - **Idempotency-Key 헤더**: 같은 키로 온 요청은 서버가 중복으로 보고, 새로 처리하지 않고 첫 결과를 돌려줍니다.
-  - **클라이언트가 보내는 고유 주문 ID**: 같은 ID가 이미 있으면 중복 생성을 거부하거나 기존 주문을 반환합니다.
-- timeout의 함정은 **서버가 이미 처리를 끝냈는데 응답만 못 받았을 수 있다**는 점입니다. 키나 고유 ID 없이 재시도하면 주문이 중복 생성될 수 있습니다.
+개발 환경(`npm run dev`)에서 `<React.StrictMode>`로 감싸면, React가 컴포넌트를 마운트 → 언마운트 → 재마운트 순으로 한 번 더 시뮬레이션합니다. 그래서 `useEffect`가 (setup → cleanup → setup) 순서로 실행됩니다.
 
-**확인할 것**
-1. API 문서에 `/v2/orders`의 idempotency 방식(헤더 이름, 키 유효기간)이 명시돼 있는지.
-2. 스크립트가 **재시도할 때 같은 키/ID를 재사용**하는지. 시도마다 새로 만들면 보호가 안 됩니다.
-3. 가능하면 retry에 백오프와 최대 횟수를 두세요.
+- **프로덕션 빌드에서는 한 번만** 실행됩니다.
+- 목적은 cleanup이 빠졌거나 effect가 멱등적이지 않은 버그를 개발 중에 미리 드러내는 것입니다.
 
-스크립트를 보여 주시면 키 재사용 여부를 같이 확인해 드릴 수 있습니다.
+## 확인 방법
+
+```jsx
+useEffect(() => {
+  console.log('setup');
+  return () => console.log('cleanup');
+}, []);
+```
+
+개발 모드에서 `setup → cleanup → setup`이 찍히면 Strict Mode 때문입니다.
+
+## 올바른 대응
+
+Strict Mode를 끄지 말고, **effect를 cleanup 가능하게** 작성하세요.
+
+```jsx
+useEffect(() => {
+  const conn = createConnection();
+  conn.connect();
+  return () => conn.disconnect();   // 구독/타이머/리스너 정리
+}, []);
+```
+
+데이터 fetch는 취소 처리를 해주세요.
+
+```jsx
+useEffect(() => {
+  const controller = new AbortController();
+  fetch(url, { signal: controller.signal })
+    .then(r => r.json())
+    .then(setData)
+    .catch(e => { if (e.name !== 'AbortError') throw e; });
+  return () => controller.abort();
+}, [url]);
+```
+
+(실무에서는 TanStack Query, SWR 같은 라이브러리나 Suspense 기반 데이터 로딩을 쓰면 이 문제를 신경 쓸 일이 줄어듭니다.)
+
+## Strict Mode가 아닌 경우 점검할 것
+
+1. **의존성 배열이 매 렌더마다 바뀜**: 객체/배열/함수를 deps에 넣으면 매번 새 참조라 effect가 반복 실행됩니다. `useMemo`/`useCallback`으로 안정화하거나 effect 안으로 옮기세요.
+2. **컴포넌트가 실제로 두 번 마운트됨**: 부모의 `key` 변경, 조건부 렌더링, 라우터 전환 등으로 언마운트/마운트가 일어나는지 확인하세요.
+3. **effect 안에서 state를 바꿔 다시 트리거**: deps에 있는 state를 effect가 갱신하면 연쇄 실행됩니다.
+
+## 하지 말아야 할 것
+
+`useRef`로 "이미 실행됨" 플래그를 두어 두 번째 실행을 막는 방식은 임시방편입니다. 문제를 가릴 뿐 근본 원인(cleanup 누락)을 해결하지 못합니다.
+
+---
+
+코드를 보여주시면 Strict Mode 때문인지, 다른 원인인지 구체적으로 짚어드릴 수 있습니다.
 
 </td>
 <td valign="top">
 
-"idempotent"라는 말만으로는 안전하다고 단정할 수 없습니다. 먼저 endpoint가 중복 요청을 실제로 막는지 확인하세요.
+버그가 아닙니다.<br>
+React 18 이상에서 개발 모드의 StrictMode가 일부러 effect를 두 번 실행합니다.
 
-idempotent(같은 요청을 여러 번 보내도 결과가 한 번 보낸 것과 같음)라는 뜻입니다.<br>
-예를 들어 "주문 123의 상태를 PAID로 바꿔라"는 몇 번을 보내도 결과가 같습니다.<br>
-반면 "새 주문을 만들어라"는 보낼 때마다 주문이 하나씩 늘어납니다.
+mount, unmount, mount 순서로 한 번 더 돌려서 cleanup이 빠진 effect를 찾아내려는 동작입니다.<br>
+프로덕션 빌드에서는 한 번만 실행됩니다.
 
-HTTP 표준에서 POST는 idempotent가 아닙니다.<br>
-timeout이 나도 서버는 요청을 이미 처리했을 수 있습니다.<br>
-이때 재시도하면 주문이 중복 생성될 수 있습니다.
+두 번 실행돼서 문제가 생긴다면 effect에 cleanup이 없다는 신호입니다.<br>
+구독, 타이머, 이벤트 리스너는 cleanup 함수에서 해제하세요.
 
-이 endpoint가 안전하려면 보통 `Idempotency-Key` 같은 header를 받아야 합니다.<br>
-서버가 같은 key의 요청을 다시 받으면, 새로 만들지 않고 첫 번째 결과를 돌려줍니다.<br>
-API 문서에서 이 key 지원 여부를 확인하세요.<br>
-지원한다면 배포 스크립트가 재시도할 때 같은 key를 다시 보내는지도 확인하세요.<br>
-재시도마다 key를 새로 만들면 중복 방지가 작동하지 않습니다.
+```jsx
+useEffect(() => {
+  const id = setInterval(tick, 1000);
+  return () => clearInterval(id);
+}, []);
+```
+
+fetch는 `AbortController`로 이전 요청을 취소하거나 `ignore` 플래그로 늦게 온 응답을 무시하세요.
+
+```jsx
+useEffect(() => {
+  let ignore = false;
+  fetch(url).then(r => r.json()).then(data => {
+    if (!ignore) setData(data);
+  });
+  return () => { ignore = true; };
+}, [url]);
+```
+
+StrictMode를 끄면 증상은 사라지지만 버그를 숨기는 셈입니다.<br>
+프로덕션에서도 두 번 실행된다면 컴포넌트가 실제로 두 번 mount되는 것이니, `key` 변경이나 부모의 조건부 렌더링을 확인하세요.
 
 </td>
 </tr>
 </table>
 
-적용 전은 측정 답변 [`none/why-timeout-r2`](evals/results/reply-2026-10-29/none/why-timeout-r2.md), 적용 후는 0.2.0 규칙으로 따로 받은 [답변](evals/results/readme-example-2026-10-30/simple-korean-0.2.0-why-timeout.md)입니다.\
-모델은 둘 다 `claude-sonnet-5-5`, effort low입니다.\
-적용 후 답변도 규칙을 다 지키지는 않았습니다.\
-마지막 문단이 다섯 문장이라 "문단은 세 문장 이내" 규칙을 어겼습니다.
+원문은 [적용 전](evals/results/readme-example-2026-10-30/candidates/none/useeffect.md)과 [적용 후](evals/results/readme-example-2026-10-30/candidates/simple-korean-0.2.0/useeffect.md)에 있습니다.\
+모델은 둘 다 `claude-sonnet-5-5`, effort low이고, 적용 후는 0.2.0 규칙입니다.\
+같은 폴더에 다른 후보 질문 두 개(rebase와 merge, 기획자에게 장애 설명)의 답도 있습니다.
 
 런북, 에러 메시지, commit message, 작업 보고 예시는 [`examples/before-after.md`](examples/before-after.md)에 있습니다.
 
