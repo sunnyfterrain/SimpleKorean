@@ -65,12 +65,9 @@ hook은 settings에서 output style `simple-korean`을 찾으면 규칙을 넣�
 | bullet | 5 | 0 |
 
 <table>
+<tr><th>적용 전</th></tr>
 <tr>
-<th width="50%">적용 전</th>
-<th width="50%">적용 후 (0.2.0)</th>
-</tr>
-<tr>
-<td valign="top">
+<td>
 
 버그가 아닙니다. 대부분 **React 18+ Strict Mode**의 의도된 동작입니다.
 
@@ -134,7 +131,10 @@ useEffect(() => {
 코드를 보여주시면 Strict Mode 때문인지, 다른 원인인지 구체적으로 짚어드릴 수 있습니다.
 
 </td>
-<td valign="top">
+</tr>
+<tr><th>적용 후 (0.2.0)</th></tr>
+<tr>
+<td>
 
 버그가 아닙니다.<br>
 React 18 이상에서 개발 모드의 StrictMode가 일부러 effect를 두 번 실행합니다.
