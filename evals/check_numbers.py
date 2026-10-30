@@ -65,15 +65,14 @@ def fmt(v):
     return f"{v:.1f}" if isinstance(v, float) else str(v)
 
 
+# 조건이 열, 항목이 행입니다. 항목이 11개라 조건을 행으로 두면 표가 화면 너비를 넘습니다.
 def table(rows):
-    head = "| 조건 | 답변 수 | " + " | ".join(name for name, _ in COLUMNS) + " |"
-    sep = "|---|---:|" + "|".join("---:" for _ in COLUMNS) + "|"
-    lines = [head, sep]
-    for cond in ORDER + sorted(k for k in rows if k not in ORDER):
-        if cond not in rows:
-            continue
-        r = rows[cond]
-        lines.append(f"| {LABEL.get(cond, cond)} | {r['n']} | " + " | ".join(fmt(r[key]) for _, key in COLUMNS) + " |")
+    conds = [c for c in ORDER + sorted(k for k in rows if k not in ORDER) if c in rows]
+    head = "| 항목 | " + " | ".join(LABEL.get(c, c) for c in conds) + " |"
+    sep = "|---|" + "|".join("---:" for _ in conds) + "|"
+    lines = [head, sep, "| 답변 수 | " + " | ".join(str(rows[c]["n"]) for c in conds) + " |"]
+    for name, key in COLUMNS:
+        lines.append(f"| {name} | " + " | ".join(fmt(rows[c][key]) for c in conds) + " |")
     return "\n".join(lines)
 
 
