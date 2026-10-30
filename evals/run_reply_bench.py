@@ -43,7 +43,7 @@ def generate(prompt, system, model, effort):
         cmd += ["--append-system-prompt", system]
     if effort:
         cmd += ["--effort", effort]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300, cwd="/tmp")
+    r = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=300, cwd="/tmp")
     return extract_result(r.stdout)
 
 

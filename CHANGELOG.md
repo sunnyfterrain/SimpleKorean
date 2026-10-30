@@ -7,6 +7,8 @@
 - 문서: md 파일과 commit 본문은 한 문장마다 줄바꿈(semantic line breaks), 문단 사이에 빈 줄
 - code block, table, 목록 항목 안에는 줄바꿈 규칙을 적용하지 않음
 - 측정 결과는 0.1.0 기준으로 남김
+- README 예시를 실제 Claude 출력으로 교체
+- `run_reply_bench.py`: `claude -p`에 stdin을 넘기지 않도록 수정. stdin으로 실행하면 스크립트 내용이 질문 뒤에 붙었음
 
 ## 0.1.0 (2026-10-29)
 
