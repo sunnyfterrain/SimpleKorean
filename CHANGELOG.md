@@ -2,6 +2,7 @@
 
 ## 0.2.0 (2026-10-29)
 
+- 문서: README처럼 렌더링해서 읽는 md는 문장 줄 끝에 hard break(`\`), HTML table 칸 안에서는 `<br>`
 - 답변: 문단은 세 문장 이내, 문단 사이에 빈 줄, 문단 안에서는 한 문장마다 줄바꿈
 - 문서: md 파일과 commit 본문은 한 문장마다 줄바꿈(semantic line breaks), 문단 사이에 빈 줄
 - code block, table, 목록 항목 안에는 줄바꿈 규칙을 적용하지 않음
